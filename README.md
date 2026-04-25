@@ -6,32 +6,32 @@
 
 ## Overview
 
-This Java application simulates a deterministic Turing Machine equipped with a bi-infinite tape. The program parses a configuration file containing the machine's total states, alphabet size, transition functions, and an initial input string. It then processes the input string according to the defined rules, moving the read/write head and modifying the tape contents until it reaches the final halting state, at which point it prints the contents of all visited tape cells.
+This Java application provides a highly optimized simulator for a deterministic Turing Machine equipped with a bi-infinite tape. The program strictly parses a configuration file determining the states, alphabet size, transition functions, and input string. It processes the instructions, moving a simulated read/write head, and halts when it reaches the final state, effectively printing the continuous sequence of all visited tape cells.
 
 ## Reflection
 
-Developing this Turing Machine simulator presented an interesting challenge, particularly when it came to conceptualizing and implementing the bi-infinite tape. Initially, mapping a tape that can expand infinitely in both the left and right directions using standard array structures seemed daunting. However, leveraging a `HashMap` where the keys represent the position indices on the tape and the values hold the symbols proved to be an effective solution, allowing the head to seamlessly transition into negative indices without encountering boundary errors. 
+Developing this Turing Machine simulator required a significant pivot in how we handled data structures. Initially, a standard `HashMap` seemed like the most logical way to map a tape that expands infinitely into negative and positive directions. However, we realized that object wrapper overhead (autoboxing `Long` and `Integer` keys/values) would slow down execution significantly for millions of transitions, posing a real threat to the 5-minute timeout requirement.
 
-One of the main struggles during development was accurately parsing the transition rules and ensuring they mapped correctly to the intended states and symbols, especially calculating the origin state and symbol from the line index. Debugging this required a careful approach. We utilized multiple print statements during the parsing phase to verify that the internal `TMState` arrays were populating correctly before even attempting to run the simulation loop. 
+To solve this, we pivoted to a primitive-based architecture. The bi-infinite tape was reimagined as two dynamically resizing `int[]` arrays (one for positive indices, one for negative). This completely eliminated garbage collection overhead in the execution loop. We also optimized `TMState` to use arrays instead of Maps for $O(1)$ instantaneous transition lookups. 
 
-If I could go back in time, I would spend more time manually tracing the logic of the provided test cases on paper before writing the simulation loop. Visualizing the state transitions and head movements outside of the code would have made it easier to implement the tracking for the furthest left and right visited boundaries. Going forward, I plan to incorporate more upfront conceptual design into my workflow before diving straight into the implementation to ensure clearer logic from the start.
+The main struggle was ensuring the file parser read *exactly* the correct number of transition lines so that it wouldn't accidentally consume the input string on the final line if the file lacked an `EOF` marker. If we could go back in time, we would remind ourselves that reading file specifications strictly mathematically (e.g., exactly `(States - 1) * Gamma` lines) is safer than relying on arbitrary file termination loops.
 
 ## Compiling and Using
 
-To compile, open a console, navigate to the main project directory containing the `tm` source folder, and execute the following command:
+To compile the application, navigate to the project directory containing the `tm` source folder, and execute:
 
 $ javac tm/*.java
 
 Run the compiled class by providing the input configuration file as a single command-line argument:
 
-$ java tm.TMSimulator <input_file.txt>
+$ java tm.TMSimulator <input_file>
 
-For example, to run the program using `file0.txt`:
+For example, to simulate `file0.txt`:
 
 $ java tm.TMSimulator file0.txt
 
-The program requires no further user input while running. It will automatically process the provided file and output the final tape sequence to the standard output.
+The program will execute the transitions and directly output the final visited tape segments to the standard console.
 
 ## Sources used
 
-- Oracle Java Documentation (HashMap, String parsing, I/O handling): https://docs.oracle.com/en/java/javase/
+- Oracle Java Documentation (Arrays, String parsing, BufferedReader): https://docs.oracle.com/en/java/javase/

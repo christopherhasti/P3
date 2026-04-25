@@ -1,57 +1,61 @@
 package tm;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Represents a single state within the Turing Machine.
- * Maps symbols read from the tape to their corresponding transition rules.
+ * Manages transition rules using an array structure for O(1) lookup efficiency.
  * * @author Christopher Hastings and Daniel Trice
  */
 public class TMState {
     
-    // Maps a read symbol to the specific Transition instruction
-    private final Map<Integer, Transition> transitions = new HashMap<>();
+    // Array guarantees O(1) instantaneous lookup without hashing overhead
+    private final Transition[] transitions;
 
     /**
-     * Adds a new transition instruction to this state.
-     * * @param readSymbol The symbol that must be read to trigger the transition.
+     * Constructs a TMState.
+     * * @param gammaSize The total size of the tape alphabet, used to size the array.
+     */
+    public TMState(int gammaSize) {
+        transitions = new Transition[gammaSize];
+    }
+
+    /**
+     * Maps a read symbol to a specific transition rule.
+     * * @param readSymbol The symbol triggering the transition.
      * @param nextState The state to transition into.
-     * @param writeSymbol The symbol to write to the current tape cell.
+     * @param writeSymbol The symbol to write to the tape.
      * @param move The direction to move the head (1 for Right, -1 for Left).
      */
     public void addTransition(int readSymbol, int nextState, int writeSymbol, int move) {
-        transitions.put(readSymbol, new Transition(nextState, writeSymbol, move));
+        if (readSymbol >= 0 && readSymbol < transitions.length) {
+            transitions[readSymbol] = new Transition(nextState, writeSymbol, move);
+        }
     }
 
     /**
-     * Retrieves the transition instruction associated with a specific read symbol.
+     * Retrieves the transition associated with a tape symbol.
      * * @param symbol The symbol currently read from the tape.
-     * @return The corresponding Transition object, or null if no transition exists for the symbol.
+     * @return The corresponding Transition object, or null.
      */
     public Transition getTransition(int symbol) {
-        return transitions.get(symbol);
+        if (symbol >= 0 && symbol < transitions.length) {
+            return transitions[symbol];
+        }
+        return null;
     }
 
     /**
-     * A nested data class representing the instructions for a single transition.
+     * A nested data structure defining the instructions for a single transition.
      */
     public static class Transition {
-        
-        // The index of the target state
         public final int nextState;
-        
-        // The symbol to be written to the tape
         public final int writeSymbol;
-        
-        // The direction the tape head should move (1 for Right, -1 for Left)
         public final int move; 
 
         /**
-         * Constructs a Transition object.
-         * * @param nextState The state to transition into.
-         * @param writeSymbol The symbol to write to the tape.
-         * @param move The direction to move the tape head.
+         * Constructs a Transition instruction.
+         * * @param nextState Target state.
+         * @param writeSymbol Symbol to write.
+         * @param move Direction to move.
          */
         public Transition(int nextState, int writeSymbol, int move) {
             this.nextState = nextState;
